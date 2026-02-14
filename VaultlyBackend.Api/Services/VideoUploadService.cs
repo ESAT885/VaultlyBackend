@@ -23,7 +23,16 @@ namespace VaultlyBackend.Api.Services
             var videos = await context.Videos.ToListAsync();
             if (videos == null)
                 throw new BusinessException("Video bulunamadı", "Video bulunamadı");
-            return mapper.Map<List<VideoDto>>(videos);
+            var videoDtos = mapper.Map<List<VideoDto>>(videos);
+
+            // Her video için URL’leri ekle
+            foreach (var dto in videoDtos)
+            {
+                dto.ThumbnailUrl = $"/api/video/thumbnail/{dto.Id}/thumbnail.jpg";
+                dto.HlsUrl = $"/api/video/stream/{dto.Id}/index.m3u8";
+            }
+
+            return videoDtos;
         }
         public async Task<VideoDto> VideoInit(string fileName)
         {
@@ -69,12 +78,7 @@ namespace VaultlyBackend.Api.Services
         }
         public async Task<VideoDto> Complete(Guid videoId)
         {
-            var chunkDir = Path.Combine(
-    _env.ContentRootPath,
-    "storage",
-    "chunks",
-    videoId.ToString()
-);
+            var chunkDir = Path.Combine(_env.ContentRootPath,"storage","chunks", videoId.ToString());
 
             if (!Directory.Exists(chunkDir))
                 throw new BusinessException("Chunk klasörü yok", "Chunk klasörü yok");
@@ -224,41 +228,8 @@ namespace VaultlyBackend.Api.Services
                 throw new Exception($"FFmpeg {taskName} failed: {error}");
             }
         }
-        //private async Task ConvertToHls(string inputPath, string outputDir)
-        //{
-        //    var ffmpegPath = @"C:\ffmpeg\bin\ffmpeg.exe";
 
-        //    var args =
-        //$"-y -i \"{inputPath}\" " +
-        //"-c copy " +                 // re-encode yok → hızlı
-        //"-start_number 0 " +
-        //"-hls_time 6 " +
-        //"-hls_list_size 0 " +
-        //"-f hls " +
-        //$"\"{Path.Combine(outputDir, "index.m3u8")}\"";
+       
 
-        //    var process = new Process
-        //    {
-        //        StartInfo = new ProcessStartInfo
-        //        {
-        //            FileName = ffmpegPath,
-        //            Arguments = args,
-        //            WorkingDirectory = outputDir,
-        //            RedirectStandardOutput = true,
-        //            RedirectStandardError = true,
-        //            UseShellExecute = false,
-        //            CreateNoWindow = true
-        //        }
-        //    };
-
-        //    process.Start();
-        //    await process.WaitForExitAsync();
-        //    if (process.ExitCode != 0)
-        //    {
-        //        var error = await process.StandardError.ReadToEndAsync();
-        //        throw new Exception("FFmpeg HLS failed: " + error);
-        //    }
-
-        //}
     }
 }

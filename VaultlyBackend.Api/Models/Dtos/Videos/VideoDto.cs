@@ -6,6 +6,7 @@
         public string OriginalFileName { get; set; } = "";
         public string Status { get; set; } = "Uploading";
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public string HlsUrl { get; set; }
         public string ThumbnailUrl { get; set; }=String.Empty;
     }
 }

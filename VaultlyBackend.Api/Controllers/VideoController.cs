@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using VaultlyBackend.Api.Models.Dtos.Videos;
+using VaultlyBackend.Api.Models.Entites;
 using VaultlyBackend.Api.Services.Interfaces;
 #region ESKİ KOD
 //using System.Diagnostics;
@@ -256,15 +257,34 @@ namespace VaultlyBackend.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class VideoController(IVideoUploadService videoUploadService) : BaseController
+    public class VideoController(IVideoUploadService videoUploadService, IWebHostEnvironment _env) : BaseController
     {
 
         [HttpGet()]
         public async Task<IActionResult> Videos()
         {
             var result = await videoUploadService.GetVideos();
+            foreach (var video in result)
+            {
+                var thumbFile = "thumbnail.jpg";
+                var thumbPath = Path.Combine(_env.ContentRootPath, "storage", "hls", video.Id.ToString(), thumbFile);
+
+                if (System.IO.File.Exists(thumbPath))
+                {
+                    video.ThumbnailUrl = Url.Action(
+            action: "GetThumbnail",
+            controller: "Video",
+            values: new { videoId = video.Id, file = "thumbnail.jpg" },
+            protocol: Request.Scheme // http veya https otomatik
+        );
+
+                }
+            }
             return Success<List<VideoDto>>(result);
         }
+       
+ 
+
         [HttpPost("init")]
         public async Task<IActionResult> Init([FromQuery] string fileName)
         {
