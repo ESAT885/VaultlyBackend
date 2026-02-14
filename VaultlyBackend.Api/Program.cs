@@ -1,9 +1,12 @@
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Scalar.AspNetCore;
+using VaultlyBackend.Api.Background;
 using VaultlyBackend.Api.Data;
 using VaultlyBackend.Api.Extensions;
+using VaultlyBackend.Api.Helpers.Mapper;
 using VaultlyBackend.Api.Middlewares;
 using VaultlyBackend.Api.Services;
 using VaultlyBackend.Api.Services.Interfaces;
@@ -15,16 +18,33 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddRateLimiting();
+builder.Services.AddAutoMapper(cfg =>
+{
+    cfg.AddMaps(AppDomain.CurrentDomain.GetAssemblies());
+});
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddFluentValidationClientsideAdapters();
 builder.Services.AddCustomApiBehavior();
 builder.Services.AddValidatorsFromAssemblyContaining<UserDtoValidator>();
 builder.Services.AddOpenApi();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowVue", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:5173") // Vue dev server
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
 builder.Services.AddDbContext<VaultlyDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("UserDatabase")));
 builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IVideoUploadService, VideoUploadService>();
+builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
+builder.Services.AddHostedService<QueuedProcessorBackgroundService>();
 var app = builder.Build();
 
 app.UseMiddleware<ExceptionMiddleware>();
@@ -35,7 +55,7 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
     app.MapScalarApiReference();
 }
-
+app.UseCors("AllowVue");
 //app.UseHttpsRedirection();
 app.UseRouting();
 app.UseRateLimiter();

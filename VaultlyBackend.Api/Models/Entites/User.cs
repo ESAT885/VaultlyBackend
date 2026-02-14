@@ -1,4 +1,4 @@
-﻿namespace VaultlyBackend.Api.Entites
+﻿namespace VaultlyBackend.Api.Models.Entites
 {
     public class User
     {

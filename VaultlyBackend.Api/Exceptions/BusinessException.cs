@@ -5,6 +5,7 @@
         public BusinessException(string publicMessage, string logMessage) :
             base(publicMessage, logMessage, StatusCodes.Status400BadRequest)
         { }
+
     }
 
     public class NotFoundException : AppException

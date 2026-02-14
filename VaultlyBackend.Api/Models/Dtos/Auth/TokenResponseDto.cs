@@ -1,4 +1,4 @@
-﻿namespace VaultlyBackend.Api.Models.Auth
+﻿namespace VaultlyBackend.Api.Models.Dtos.Auth
 {
     public class TokenResponseDto
     {

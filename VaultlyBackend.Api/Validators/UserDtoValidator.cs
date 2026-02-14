@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using VaultlyBackend.Api.Models;
+using VaultlyBackend.Api.Models.Dtos.Users;
 
 namespace VaultlyBackend.Api.Validators
 {

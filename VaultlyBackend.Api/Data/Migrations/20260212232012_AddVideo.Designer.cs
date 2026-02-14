@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VaultlyBackend.Api.Data;
 
@@ -11,9 +12,11 @@ using VaultlyBackend.Api.Data;
 namespace VaultlyBackend.Api.Data.Migrations
 {
     [DbContext(typeof(VaultlyDbContext))]
-    partial class VaultlyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260212232012_AddVideo")]
+    partial class AddVideo
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,7 +25,7 @@ namespace VaultlyBackend.Api.Data.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("VaultlyBackend.Api.Models.Entites.User", b =>
+            modelBuilder.Entity("VaultlyBackend.Api.Entites.User", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -51,7 +54,7 @@ namespace VaultlyBackend.Api.Data.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("VaultlyBackend.Api.Models.Entites.Video", b =>
+            modelBuilder.Entity("VaultlyBackend.Api.Entites.Video", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -65,10 +68,6 @@ namespace VaultlyBackend.Api.Data.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("StreamUrl")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 

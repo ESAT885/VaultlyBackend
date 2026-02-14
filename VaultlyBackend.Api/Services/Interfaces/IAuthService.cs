@@ -1,13 +1,12 @@
-﻿using VaultlyBackend.Api.Entites;
-using VaultlyBackend.Api.Models;
-using VaultlyBackend.Api.Models.Auth;
+﻿using VaultlyBackend.Api.Models.Dtos.Auth;
+using VaultlyBackend.Api.Models.Dtos.Users;
 
 namespace VaultlyBackend.Api.Services.Interfaces
 {
     public interface IAuthService
     {
-        public  Task<RegisterUserResponse?> RegisterAsync(RegisterUserRequest request);
-        public Task<TokenResponseDto?> LoginAsync(UserDto request);
+        public  Task<RegisterUserResponseDto?> RegisterAsync(RegisterUserRequestDto request);
+        public Task<TokenResponseDto?> LoginAsync(LoginRequestDto request);
         public Task<TokenResponseDto?> RefreshTokenAsync(RefreshTokenRequestDto request);
     }
 }

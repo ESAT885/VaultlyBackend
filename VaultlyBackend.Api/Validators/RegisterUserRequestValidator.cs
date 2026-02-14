@@ -1,10 +1,10 @@
 ﻿using FluentValidation;
 using VaultlyBackend.Api.Models;
-using VaultlyBackend.Api.Models.Auth;
+using VaultlyBackend.Api.Models.Dtos.Auth;
 
 namespace VaultlyBackend.Api.Validators
 {
-    public class RegisterUserRequestValidator : AbstractValidator<RegisterUserRequest>
+    public class RegisterUserRequestValidator : AbstractValidator<RegisterUserRequestDto>
     {
         public RegisterUserRequestValidator()
         {

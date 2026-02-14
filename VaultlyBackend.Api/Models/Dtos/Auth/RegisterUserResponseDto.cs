@@ -1,6 +1,6 @@
-﻿namespace VaultlyBackend.Api.Models.Auth
+﻿namespace VaultlyBackend.Api.Models.Dtos.Auth
 {
-    public class RegisterUserResponse
+    public class RegisterUserResponseDto
     {
         public string UserName { get; set; } = string.Empty;
         public string Role { get; set; } = string.Empty;

@@ -2,7 +2,7 @@
 using System.Text;
 
 
-namespace VaultlyBackend.Api.Helpers
+namespace VaultlyBackend.Api.Helpers.Methods
 {
     public static class TokenHasher
     {

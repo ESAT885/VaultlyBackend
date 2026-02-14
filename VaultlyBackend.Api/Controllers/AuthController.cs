@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using VaultlyBackend.Api.Exceptions;
-using VaultlyBackend.Api.Models;
-using VaultlyBackend.Api.Models.Auth;
+using VaultlyBackend.Api.Models.Dtos.Auth;
+using VaultlyBackend.Api.Models.Dtos.Users;
 using VaultlyBackend.Api.Services.Interfaces;
 
 namespace VaultlyBackend.Api.Controllers
@@ -24,7 +24,7 @@ namespace VaultlyBackend.Api.Controllers
         }
         [EnableRateLimiting("login")]
         [HttpPost("Login")]
-        public async Task<IActionResult> Login(UserDto request)
+        public async Task<IActionResult> Login(LoginRequestDto request)
         {
             var token = await authService.LoginAsync(request);
             if (token is null)
@@ -34,7 +34,7 @@ namespace VaultlyBackend.Api.Controllers
 
         }
         [HttpPost("Register")]
-        public async Task<IActionResult> Register(RegisterUserRequest request)
+        public async Task<IActionResult> Register(RegisterUserRequestDto request)
         {
 
 

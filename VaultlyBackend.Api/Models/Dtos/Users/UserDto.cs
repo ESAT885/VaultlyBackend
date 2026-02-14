@@ -1,4 +1,4 @@
-﻿namespace VaultlyBackend.Api.Models
+﻿namespace VaultlyBackend.Api.Models.Dtos.Users
 {
     public class UserDto
     {

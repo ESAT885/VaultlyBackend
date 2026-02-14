@@ -4,24 +4,23 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using VaultlyBackend.Api.Data;
-using VaultlyBackend.Api.Entites;
-using VaultlyBackend.Api.Helpers;
-using VaultlyBackend.Api.Models;
 using VaultlyBackend.Api.Services.Interfaces;
-using System.IdentityModel.Tokens.Jwt;
-using VaultlyBackend.Api.Models.Auth;
+using VaultlyBackend.Api.Models.Entites;
+using VaultlyBackend.Api.Helpers.Methods;
+using VaultlyBackend.Api.Models.Dtos.Auth;
+using VaultlyBackend.Api.Models.Dtos.Users;
 namespace VaultlyBackend.Api.Services
 {
     public class AuthService(VaultlyDbContext context, IConfiguration configuration) : IAuthService
     {
-        public async Task<TokenResponseDto?> LoginAsync(UserDto request)
+        public async Task<TokenResponseDto?> LoginAsync(LoginRequestDto request)
         {
             var user = await context.Users.FirstOrDefaultAsync(u => u.UserName == request.UserName);
             if (user == null)
             {
                 return null;
             }
-            if (new PasswordHasher<User>().VerifyHashedPassword(user, user.PasswordHash, request.PasswordHash) == PasswordVerificationResult.Failed)
+            if (new PasswordHasher<User>().VerifyHashedPassword(user, user.PasswordHash, request.Password) == PasswordVerificationResult.Failed)
             {
                 return null;
             }
@@ -109,7 +108,7 @@ namespace VaultlyBackend.Api.Services
             return new JwtSecurityTokenHandler().WriteToken(tokendescriptor);
         }
 
-        public async Task<RegisterUserResponse?> RegisterAsync(RegisterUserRequest request)
+        public async Task<RegisterUserResponseDto?> RegisterAsync(RegisterUserRequestDto request)
         {
             if (await context.Users.AnyAsync(u => u.UserName == request.UserName))
             {
@@ -127,7 +126,7 @@ namespace VaultlyBackend.Api.Services
             context.Users.Add(user);
             await context.SaveChangesAsync();
 
-            return new RegisterUserResponse 
+            return new RegisterUserResponseDto 
             { 
                 UserName= user.UserName,
                 Role= user.Role,    
