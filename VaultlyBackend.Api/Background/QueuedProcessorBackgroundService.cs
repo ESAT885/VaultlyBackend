@@ -1,39 +1,44 @@
 ﻿namespace VaultlyBackend.Api.Background
 {
-    public class QueuedProcessorBackgroundService : BackgroundService
+    public class QueuedHostedService : BackgroundService
     {
         private readonly IBackgroundTaskQueue _taskQueue;
-        private readonly IServiceProvider _serviceProvider;
-        private readonly ILogger _logger;
+        private readonly ILogger<QueuedHostedService> _logger;
 
-        public QueuedProcessorBackgroundService(IBackgroundTaskQueue taskQueue,
-            IServiceProvider serviceProvider,
-            ILoggerFactory loggerFactory)
+        public QueuedHostedService(
+            IBackgroundTaskQueue taskQueue,
+            ILogger<QueuedHostedService> logger)
         {
             _taskQueue = taskQueue;
-            _serviceProvider = serviceProvider;
-            _logger = loggerFactory.CreateLogger<QueuedProcessorBackgroundService>();
+            _logger = logger;
         }
 
-        protected override async Task ExecuteAsync(CancellationToken cancellationToken)
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("Queued Processor Background Service is starting.");
-
-            while (!cancellationToken.IsCancellationRequested)
+            while (!stoppingToken.IsCancellationRequested)
             {
-                var workItem = await _taskQueue.DequeueAsync(cancellationToken);
+                BackgroundJob job = null!;
 
                 try
                 {
-                    await workItem(_serviceProvider, cancellationToken);
+                    job = await _taskQueue.DequeueAsync(stoppingToken);
+
+                    await job.WorkItem(stoppingToken);
+                    await _taskQueue.MarkCompletedAsync(job);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, $"Error occurred executing {nameof(workItem)}.");
+                    _logger.LogError(ex, "Job failed");
+                }
+                finally
+                {
+                    if (job != null)
+                    {
+                        _taskQueue 
+                            ?.MarkCompletedAsync(job);
+                    }
                 }
             }
-
-            _logger.LogInformation("Queued Processor Background Service is stopping.");
         }
     }
 }

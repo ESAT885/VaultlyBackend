@@ -33,7 +33,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowVue", policy =>
     {
         policy
-            .WithOrigins("http://localhost:5173") // Vue dev server
+            .WithOrigins("http://localhost:5173", "http://localhost:5178") // Vue dev server
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
@@ -43,8 +43,11 @@ builder.Services.AddDbContext<VaultlyDbContext>(options =>
 builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IVideoUploadService, VideoUploadService>();
-builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
-builder.Services.AddHostedService<QueuedProcessorBackgroundService>();
+
+builder.Services.AddSingleton<IBackgroundTaskQueue>(_ =>
+    new BackgroundTaskQueue(capacity: 100));
+
+builder.Services.AddHostedService<QueuedHostedService>();
 var app = builder.Build();
 
 app.UseMiddleware<ExceptionMiddleware>();

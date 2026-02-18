@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Text.RegularExpressions;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
@@ -139,13 +140,25 @@ namespace VaultlyBackend.Api.Services
             );
             Directory.CreateDirectory(hlsDir);
 
-         
-            taskQueue.QueueBackgroundWorkItem(async (serviceProvider, token) =>
+
+           
+            
+            await taskQueue.QueueAsync(new BackgroundJob
             {
-                await Task.Run(() => ConvertToHls(mergedPath, hlsDir), token);
-                await Task.Run(() => GenerateThumbnail(mergedPath, hlsDir), token);
+                Name = $"HLS Dönüştürme - VideoId: {videoId}",
+                WorkItem = async token =>
+                {
+                    await ConvertToHls(mergedPath, hlsDir);
+                }
             });
-         
+            await taskQueue.QueueAsync(new BackgroundJob
+            {
+                Name = $"Thumbnail Oluşturma - VideoId: {videoId}",
+                WorkItem = async token =>
+                {
+                    await GenerateThumbnail(mergedPath, hlsDir);
+                }
+            });
             // ------------------------------------------------
             // 3️⃣ RESPONSE
             // ------------------------------------------------
@@ -192,26 +205,18 @@ namespace VaultlyBackend.Api.Services
             await RunFfmpeg(ffmpegPath, args, outputDir, "HLS");
         }
 
-        // Thumbnail oluşturma
-        private async Task GenerateThumbnail(string inputPath, string outputDir, string thumbnailName = "thumbnail.jpg")
+        private async Task<double> GetVideoDuration(string inputPath)
         {
-            var ffmpegPath = @"C:\ffmpeg\bin\ffmpeg.exe";
-            var thumbnailPath = Path.Combine(outputDir, thumbnailName);
-            var args = $"-y -i \"{inputPath}\" -ss 00:00:05 -vframes 1 -vf \"scale=320:180\" \"{thumbnailPath}\"";
+            var ffprobePath = @"C:\ffmpeg\bin\ffprobe.exe";
 
-            await RunFfmpeg(ffmpegPath, args, outputDir, "Thumbnail");
-        }
+            var args = $"-v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 \"{inputPath}\"";
 
-        // Ortak FFMPEG çalıştırma
-        private async Task RunFfmpeg(string ffmpegPath, string args, string workingDir, string taskName)
-        {
             var process = new Process
             {
                 StartInfo = new ProcessStartInfo
                 {
-                    FileName = ffmpegPath,
+                    FileName = ffprobePath,
                     Arguments = args,
-                    WorkingDirectory = workingDir,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     UseShellExecute = false,
@@ -220,13 +225,85 @@ namespace VaultlyBackend.Api.Services
             };
 
             process.Start();
+
+            var output = await process.StandardOutput.ReadToEndAsync();
             await process.WaitForExitAsync();
 
-            if (process.ExitCode != 0)
+            if (double.TryParse(output.Trim(), out double duration))
+                return duration;
+
+            throw new Exception("Video duration okunamadı.");
+        }
+        // Thumbnail oluşturma
+        private async Task GenerateThumbnail(string inputPath, string outputDir, string thumbnailName = "thumbnail.jpg")
+        {
+            var ffmpegPath = @"C:\ffmpeg\bin\ffmpeg.exe";
+     
+           var thumbnailPath = Path.Combine(outputDir, thumbnailName);
+
+            // 1️⃣ Duration al
+            var duration = await GetVideoDuration(inputPath);
+
+            // 2️⃣ %10 hesapla
+            var captureSecond = duration * 0.10;
+
+            // Video çok kısaysa 1. saniyeden al
+            if (captureSecond < 1)
+                captureSecond = 1;
+
+            var args =
+                $"-y -i \"{inputPath}\" " +
+                "-vf \"thumbnail,scale=1280:-1\" " +
+                "-frames:v 1 " +
+                "-pix_fmt yuvj420p " +
+                $"\"{thumbnailPath}\"";
+
+            await RunFfmpeg(ffmpegPath, args, outputDir, "Thumbnail");
+
+            if (!File.Exists(thumbnailPath))
+                throw new Exception("Thumbnail oluşturulamadı.");
+        }
+
+        // Ortak FFMPEG çalıştırma
+        private async Task RunFfmpeg(string ffmpegPath, string args, string workingDir, string taskName)
+        {
+            try
             {
-                var error = await process.StandardError.ReadToEndAsync();
-                throw new Exception($"FFmpeg {taskName} failed: {error}");
+                var process = new Process
+                {
+                    StartInfo = new ProcessStartInfo
+                    {
+                        FileName = ffmpegPath,
+                        Arguments = args,
+                        WorkingDirectory = workingDir,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    }
+                };
+
+                process.Start();
+                // 🔥 OKUMAYI BAŞLAT
+                var stdOutTask = process.StandardOutput.ReadToEndAsync();
+                var stdErrTask = process.StandardError.ReadToEndAsync();
+                await process.WaitForExitAsync();
+
+                var output = await stdOutTask;
+                var error = await stdErrTask;
+
+                if (process.ExitCode != 0)
+                {
+                    //var error = await process.StandardError.ReadToEndAsync();
+                    throw new Exception($"FFmpeg {taskName} failed: {error}");
+                }
             }
+            catch (Exception ex)
+            {
+
+                throw ex;
+            }
+            
         }
 
        
