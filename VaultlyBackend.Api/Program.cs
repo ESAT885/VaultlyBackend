@@ -10,6 +10,8 @@ using VaultlyBackend.Api.Helpers.Mapper;
 using VaultlyBackend.Api.Middlewares;
 using VaultlyBackend.Api.Services;
 using VaultlyBackend.Api.Services.Interfaces;
+using VaultlyBackend.Api.Strategies;
+using VaultlyBackend.Api.Strategies.Interfaces;
 using VaultlyBackend.Api.Validators;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -35,19 +37,25 @@ builder.Services.AddCors(options =>
         policy
             .WithOrigins("http://localhost:5173", "http://localhost:5178") // Vue dev server
             .AllowAnyHeader()
-            .AllowAnyMethod();
+            .AllowAnyMethod()
+            .WithExposedHeaders("Content-Disposition");
     });
 });
 builder.Services.AddDbContext<VaultlyDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("UserDatabase")));
 builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IFfmpegVideoService, FfmpegVideoService>();
 builder.Services.AddScoped<IVideoUploadService, VideoUploadService>();
-
+builder.Services.AddScoped<IStoredFileService, StoredFileService>();
+builder.Services.AddScoped<IFileProcessor, PdfFileProcessor>();
+builder.Services.AddScoped<IFileProcessor, VideoFileProcessor>();
+builder.Services.AddScoped<IFileProcessorFactory, FileProcessorFactory>();
 builder.Services.AddSingleton<IBackgroundTaskQueue>(_ =>
     new BackgroundTaskQueue(capacity: 100));
 
 builder.Services.AddHostedService<QueuedHostedService>();
+builder.Services.AddMemoryCache();
 var app = builder.Build();
 
 app.UseMiddleware<ExceptionMiddleware>();

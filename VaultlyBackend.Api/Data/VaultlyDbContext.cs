@@ -7,5 +7,6 @@ namespace VaultlyBackend.Api.Data
     {
         public DbSet<User> Users { get; set; }
         public DbSet<Video> Videos { get; set; }
+        public DbSet<StoredFile> StoredFiles { get; set; }
     }
 }

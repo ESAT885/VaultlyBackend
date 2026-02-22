@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using VaultlyBackend.Api.Models.Dtos.StoredFiles;
 using VaultlyBackend.Api.Models.Dtos.Users;
 using VaultlyBackend.Api.Models.Dtos.Videos;
 using VaultlyBackend.Api.Models.Entites;
@@ -11,6 +12,7 @@ namespace VaultlyBackend.Api.Helpers.Mapper
         {
             CreateMap<User, UserDto>().ReverseMap();
             CreateMap<Video, VideoDto>().ReverseMap();
+            CreateMap<StoredFile, StoredFileDto>().ReverseMap();
         }
     }
 }
