@@ -136,9 +136,12 @@ namespace VaultlyBackend.Api.Services
                 contentType = "application/octet-stream";
             }
 
-            var processor = filefactory.GetProcessor(contentType);
-
-           await processor.ProcessAsync(mergedPath,storedFilefileName);
+            var processors = filefactory.GetProcessors(contentType);
+            foreach (var processor in processors)
+            {
+                await processor.ProcessAsync(mergedPath, storedFilefileName);
+            }
+   
 
             // ------------------------------------------------
             // 2️⃣ HLS OUTPUT

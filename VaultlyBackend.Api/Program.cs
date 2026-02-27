@@ -35,7 +35,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowVue", policy =>
     {
         policy
-            .WithOrigins("http://localhost:5173", "http://localhost:5178") // Vue dev server
+            .WithOrigins("http://localhost:5173", "http://localhost:5174") // Vue dev server
             .AllowAnyHeader()
             .AllowAnyMethod()
             .WithExposedHeaders("Content-Disposition");
@@ -51,6 +51,7 @@ builder.Services.AddScoped<IStoredFileService, StoredFileService>();
 builder.Services.AddScoped<IFileProcessor, PdfFileProcessor>();
 builder.Services.AddScoped<IFileProcessor, VideoFileProcessor>();
 builder.Services.AddScoped<IFileProcessorFactory, FileProcessorFactory>();
+builder.Services.AddScoped<IMachineService, MachineService>();
 builder.Services.AddSingleton<IBackgroundTaskQueue>(_ =>
     new BackgroundTaskQueue(capacity: 100));
 

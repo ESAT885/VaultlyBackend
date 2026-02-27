@@ -11,15 +11,15 @@ namespace VaultlyBackend.Api.Strategies
             _processors = processors;
         }
 
-        public IFileProcessor GetProcessor(string contentType)
+        public IEnumerable<IFileProcessor> GetProcessors(string contentType)
         {
-            var processor = _processors
-                .FirstOrDefault(p => p.CanProcess(contentType));
+            var processors = _processors
+                .Where(p => p.CanProcess(contentType)).ToList();
 
-            if (processor == null)
+            if (processors == null)
                 throw new NotSupportedException("Desteklenmeyen dosya tipi");
 
-            return processor;
+            return processors;
         }
     }
 }

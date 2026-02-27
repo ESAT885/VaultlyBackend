@@ -2,6 +2,6 @@
 {
     public interface IFileProcessorFactory
     {
-       IFileProcessor GetProcessor(string contentType);
+        IEnumerable<IFileProcessor> GetProcessors(string contentType);
     }
 }
